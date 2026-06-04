@@ -1,4 +1,4 @@
-name: Build Pterodactyl Theme
+name: Build & Deploy Pterodactyl Theme
 
 on:
   push:
@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
 
     steps:
       - name: Checkout repo
@@ -26,8 +28,60 @@ jobs:
         run: yarn build:production
 
       - name: Upload dist artifact
+        id: upload
         uses: actions/upload-artifact@v4
         with:
           name: pterodactyl-dist
           path: public/
           retention-days: 7
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pterodactyl-dist
+          path: ./public
+
+      - name: Deploy ke VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            mkdir -p /tmp/matpanel-dist
+
+      - name: Upload files ke VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          source: "./public/*"
+          target: "/tmp/matpanel-dist/"
+          strip_components: 1
+
+      - name: Apply ke Pterodactyl
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            echo "=== Backup public lama ==="
+            cp -r /var/www/pterodactyl/public /var/www/pterodactyl/public.bak.$(date +%Y%m%d%H%M%S)
+            echo "=== Apply dist baru ==="
+            rsync -av --delete /tmp/matpanel-dist/ /var/www/pterodactyl/public/
+            echo "=== Fix permission ==="
+            chown -R www-data:www-data /var/www/pterodactyl/public
+            chmod -R 755 /var/www/pterodactyl/public
+            echo "=== Cleanup ==="
+            rm -rf /tmp/matpanel-dist
+            echo "=== DONE ==="
