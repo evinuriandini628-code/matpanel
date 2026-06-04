@@ -10,47 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '18'
+          cache: 'yarn'
 
-      - name: Install Yarn
-        run: npm install -g yarn
-
-      - name: Install Dependencies
+      - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build Production
+      - name: Build production
         run: yarn build:production
 
-      - name: Upload Build Artifact
+      - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
-          name: panel-assets
-          path: public/assets/
+          name: pterodactyl-dist
+          path: public/
           retention-days: 7
-
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_KEY }}
-          script: |
-            cd /var/www/pterodactyl
-            rm -f public/assets/*.js public/assets/*.map
-            mkdir -p /tmp/panel-deploy
-
-      - name: Copy assets to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_KEY }}
-          source: "public/assets/*"
-          target: "/var/www/pterodactyl/public/assets/"
-          strip_components: 2
