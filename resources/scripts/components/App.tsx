@@ -1,23 +1,18 @@
-import React, { lazy } from 'react';
+import React from 'react';
 import { hot } from 'react-hot-loader/root';
-import { Route, Router, Switch } from 'react-router-dom';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { StoreProvider } from 'easy-peasy';
 import { store } from '@/state';
 import { SiteSettings } from '@/state/settings';
-import ProgressBar from '@/components/elements/ProgressBar';
-import { NotFound } from '@/components/elements/ScreenBlock';
-import tw from 'twin.macro';
-import GlobalStylesheet from '@/assets/css/GlobalStylesheet';
+import IndexRouter from '@/routers/IndexRouter';
 import { history } from '@/components/history';
-import { setupInterceptors } from '@/api/interceptors';
-import AuthenticatedRoute from '@/components/elements/AuthenticatedRoute';
-import { ServerContext } from '@/state/server';
 import '@/assets/tailwind.css';
-import Spinner from '@/components/elements/Spinner';
+import GlobalStylesheet from '@/assets/css/GlobalStylesheet';
+import { createGlobalStyle } from 'styled-components/macro';
+import { KantinGlobalCSS } from '@/kantin-theme';
 
-const DashboardRouter = lazy(() => import(/* webpackChunkName: "dashboard" */ '@/routers/DashboardRouter'));
-const ServerRouter = lazy(() => import(/* webpackChunkName: "server" */ '@/routers/ServerRouter'));
-const AuthenticationRouter = lazy(() => import(/* webpackChunkName: "auth" */ '@/routers/AuthenticationRouter'));
+/* Inject Kantin Panel global styles */
+const KantinGlobal = createGlobalStyle`${KantinGlobalCSS}`;
 
 interface ExtendedWindow extends Window {
     SiteConfiguration?: SiteSettings;
@@ -35,61 +30,25 @@ interface ExtendedWindow extends Window {
     };
 }
 
-setupInterceptors(history);
-
-const App = () => {
-    const { PterodactylUser, SiteConfiguration } = window as ExtendedWindow;
-    if (PterodactylUser && !store.getState().user.data) {
-        store.getActions().user.setUserData({
-            uuid: PterodactylUser.uuid,
-            username: PterodactylUser.username,
-            email: PterodactylUser.email,
-            language: PterodactylUser.language,
-            rootAdmin: PterodactylUser.root_admin,
-            useTotp: PterodactylUser.use_totp,
-            createdAt: new Date(PterodactylUser.created_at),
-            updatedAt: new Date(PterodactylUser.updated_at),
-        });
-    }
-
-    if (!store.getState().settings.data) {
-        store.getActions().settings.setSettings(SiteConfiguration!);
-    }
+function App() {
+    const siteConfiguration: SiteSettings | undefined = (window as ExtendedWindow).SiteConfiguration;
+    store.getActions().settings.setSettings(siteConfiguration || {
+        name: 'Kantin Panel',
+        locale: 'en',
+        recaptcha: { enabled: false, siteKey: '' },
+    });
 
     return (
         <>
             <GlobalStylesheet />
+            <KantinGlobal />
             <StoreProvider store={store}>
-                <ProgressBar />
-                <div css={tw`mx-auto w-auto`}>
-                    <Router history={history}>
-                        <Switch>
-                            <Route path={'/auth'}>
-                                <Spinner.Suspense>
-                                    <AuthenticationRouter />
-                                </Spinner.Suspense>
-                            </Route>
-                            <AuthenticatedRoute path={'/server/:id'}>
-                                <Spinner.Suspense>
-                                    <ServerContext.Provider>
-                                        <ServerRouter />
-                                    </ServerContext.Provider>
-                                </Spinner.Suspense>
-                            </AuthenticatedRoute>
-                            <AuthenticatedRoute path={'/'}>
-                                <Spinner.Suspense>
-                                    <DashboardRouter />
-                                </Spinner.Suspense>
-                            </AuthenticatedRoute>
-                            <Route path={'*'}>
-                                <NotFound />
-                            </Route>
-                        </Switch>
-                    </Router>
-                </div>
+                <BrowserRouter>
+                    <IndexRouter />
+                </BrowserRouter>
             </StoreProvider>
         </>
     );
-};
+}
 
 export default hot(App);

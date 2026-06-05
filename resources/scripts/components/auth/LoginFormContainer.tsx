@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { Form } from 'formik';
-import styled from 'styled-components/macro';
+import styled, { keyframes } from 'styled-components/macro';
 import { breakpoint } from '@/theme';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
@@ -9,104 +9,169 @@ type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, 
     title?: string;
 };
 
-const Container = styled.div`
-    ${breakpoint('sm')`
-        ${tw`w-4/5 mx-auto`}
-    `};
-
-    ${breakpoint('md')`
-        ${tw`p-10`}
-    `};
-
-    ${breakpoint('lg')`
-        ${tw`w-3/5`}
-    `};
-
-    ${breakpoint('xl')`
-        ${tw`w-full`}
-        max-width: 700px;
-    `};
+const float = keyframes`
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
 `;
 
-// Glassmorphism card with an animated gradient border glow.
-const GlassCard = styled.div`
+const bgPulse = keyframes`
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+`;
+
+const PageWrapper = styled.div`
+    min-height: 100vh;
+    background: #0a0f1e;
     position: relative;
-    border-radius: 1.25rem;
-    background: rgba(30, 27, 46, 0.55);
-    backdrop-filter: blur(22px) saturate(160%);
-    -webkit-backdrop-filter: blur(22px) saturate(160%);
-    border: 1px solid rgba(167, 139, 250, 0.22);
-    box-shadow: 0 20px 60px rgba(76, 29, 149, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &::before {
         content: '';
         position: absolute;
-        inset: 0;
-        border-radius: 1.25rem;
-        padding: 1px;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.7), rgba(236, 72, 153, 0.5), rgba(99, 102, 241, 0.7));
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        opacity: 0.6;
+        top: -20%;
+        left: -10%;
+        width: 60%;
+        height: 70%;
+        background: radial-gradient(ellipse, rgba(30, 111, 217, 0.12) 0%, transparent 70%);
+        animation: ${bgPulse} 4s ease-in-out infinite;
         pointer-events: none;
     }
 
     &::after {
         content: '';
         position: absolute;
-        top: -60%;
-        left: -30%;
-        width: 80%;
-        height: 220%;
-        background: linear-gradient(115deg, transparent, rgba(167, 139, 250, 0.08), transparent);
-        transform: rotate(8deg);
+        bottom: -20%;
+        right: -10%;
+        width: 50%;
+        height: 60%;
+        background: radial-gradient(ellipse, rgba(59, 158, 255, 0.08) 0%, transparent 70%);
+        animation: ${bgPulse} 5s ease-in-out infinite reverse;
         pointer-events: none;
     }
 `;
 
-const LogoWrap = styled.div`
+const Container = styled.div`
     position: relative;
-    img {
-        filter: drop-shadow(0 6px 20px rgba(139, 92, 246, 0.45));
+    z-index: 10;
+    width: 100%;
+    padding: 1.5rem;
+
+    ${breakpoint('sm')`
+        max-width: 480px;
+        margin: 0 auto;
+    `};
+`;
+
+const LogoSection = styled.div`
+    text-align: center;
+    margin-bottom: 2rem;
+
+    .icon-wrap {
+        width: 68px;
+        height: 68px;
+        background: linear-gradient(135deg, #1e6fd9, #3b9eff);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: white;
+        margin: 0 auto 1rem;
+        box-shadow: 0 0 30px rgba(59, 158, 255, 0.35), 0 8px 32px rgba(0, 0, 0, 0.4);
+        animation: ${float} 3s ease-in-out infinite;
+    }
+
+    .panel-name {
+        font-size: 1.75rem;
+        font-weight: 800;
+        font-family: 'Inter', system-ui, sans-serif;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, #e0f0ff 0%, #3b9eff 60%, #1e6fd9 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 4px;
+    }
+
+    .panel-tagline {
+        font-size: 0.78rem;
+        color: rgba(176, 210, 255, 0.4);
+        letter-spacing: 0.05em;
+    }
+`;
+
+const GlassCard = styled.div`
+    border-radius: 18px;
+    background: rgba(13, 21, 38, 0.85);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(30, 111, 217, 0.2);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(59, 158, 255, 0.08);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(59, 158, 255, 0.4), transparent);
+    }
+`;
+
+const FooterText = styled.p`
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.7rem;
+    color: rgba(176, 210, 255, 0.2);
+    font-family: 'Inter', system-ui, sans-serif;
+
+    a {
+        color: rgba(59, 158, 255, 0.4);
+        text-decoration: none;
     }
 `;
 
 export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => (
-    <Container>
-        {title && (
-            <h2
-                css={tw`text-3xl text-center text-neutral-100 font-medium py-4`}
-                style={{
-                    background: 'linear-gradient(135deg, #c4b5fd 0%, #f0abfc 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                }}
-            >
-                {title}
-            </h2>
-        )}
-        <FlashMessageRender css={tw`mb-2 px-1`} />
-        <Form {...props} ref={ref}>
-            <GlassCard css={tw`md:flex w-full p-6 md:pl-0 mx-1`}>
-                <LogoWrap css={tw`flex-none select-none mb-6 md:mb-0 self-center relative z-10`}>
-                    <img src={'/assets/svgs/pterodactyl.svg'} css={tw`block w-48 md:w-64 mx-auto`} />
-                </LogoWrap>
-                <div css={tw`flex-1 relative z-10`}>{props.children}</div>
+    <PageWrapper>
+        <Container>
+            <LogoSection>
+                <div className={'icon-wrap'}>🍽️</div>
+                <div className={'panel-name'}>Kantin Panel</div>
+                <div className={'panel-tagline'}>Game Server Management</div>
+            </LogoSection>
+
+            <FlashMessageRender css={tw`mb-3`} />
+
+            <GlassCard>
+                {title && (
+                    <h2 style={{
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        color: 'rgba(176, 210, 255, 0.7)',
+                        marginBottom: '1.5rem',
+                        textAlign: 'center',
+                        letterSpacing: '0.02em',
+                    }}>
+                        {title}
+                    </h2>
+                )}
+                <Form {...props} ref={ref} />
             </GlassCard>
-        </Form>
-        <p css={tw`text-center text-neutral-400 text-xs mt-4`}>
-            &copy; 2015 - {new Date().getFullYear()}&nbsp;
-            <a
-                rel={'noopener nofollow noreferrer'}
-                href={'https://pterodactyl.io'}
-                target={'_blank'}
-                css={tw`no-underline text-neutral-400 hover:text-neutral-200`}
-            >
-                Pterodactyl Software
-            </a>
-        </p>
-    </Container>
+
+            <FooterText>
+                Kantin Panel &mdash; Powered by{' '}
+                <a href={'https://pterodactyl.io'} target={'_blank'} rel={'noopener noreferrer'}>
+                    Pterodactyl
+                </a>
+                {' '}&copy; {new Date().getFullYear()}
+            </FooterText>
+        </Container>
+    </PageWrapper>
 ));

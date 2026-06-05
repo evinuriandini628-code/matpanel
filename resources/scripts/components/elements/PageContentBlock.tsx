@@ -25,16 +25,22 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                     {children}
                 </ContentContainer>
                 <ContentContainer css={tw`mb-4`}>
-                    <p css={tw`text-center text-neutral-500 text-xs`}>
+                    <p style={{
+                        textAlign: 'center',
+                        fontSize: '0.72rem',
+                        color: 'rgba(176, 210, 255, 0.2)',
+                        fontFamily: 'Inter, system-ui, sans-serif',
+                    }}>
+                        Kantin Panel &mdash; Powered by{' '}
                         <a
                             rel={'noopener nofollow noreferrer'}
                             href={'https://pterodactyl.io'}
                             target={'_blank'}
-                            css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
+                            style={{ color: 'rgba(59, 158, 255, 0.4)', textDecoration: 'none' }}
                         >
-                            Pterodactyl&reg;
+                            Pterodactyl
                         </a>
-                        &nbsp;&copy; 2015 - {new Date().getFullYear()}
+                        {' '}&copy; {new Date().getFullYear()}
                     </p>
                 </ContentContainer>
             </>
