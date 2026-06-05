@@ -21,6 +21,9 @@ jobs:
       - name: Install yarn
         run: npm install -g yarn
 
+      - name: Create public/assets dir
+        run: mkdir -p public/assets
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile --ignore-engines
 
